@@ -87,7 +87,7 @@ def open_viewer(images, segmentation, labeldescfile=None, cmd=None, opts=None):
 
     LOGGER.info('Open viewer: "%s %s".', cmd, opts)
     cmd = ([cmd] + opts.split(' '))
-    subprocess.call(cmd)
+    # subprocess.call(cmd)
 
 
 def vatsatseg(water, fat, output, labeldict=None):
@@ -106,10 +106,25 @@ def vatsatseg(water, fat, output, labeldict=None):
     fat_image = sitk.ReadImage(fat)
 
     out_range = (0, 100)
-    water_array = rescale_intensity(sitk.GetArrayFromImage(water_image),
-                                    out_range=out_range)
+    water_array_unscaled = sitk.GetArrayFromImage(water_image)
+
+    debug_img = sitk.GetImageFromArray(water_array_unscaled.astype(float))
+    debug_img.CopyInformation(water_image)
+    sitk.WriteImage(debug_img, 'debug_water_image_unscaled.nii.gz')
+
+    water_array = rescale_intensity(water_array_unscaled, out_range=out_range)
+
+    debug_img = sitk.GetImageFromArray(water_array.astype(float))
+    debug_img.CopyInformation(water_image)
+    sitk.WriteImage(debug_img, 'debug_water_image_scaled.nii.gz')
+
     fat_array = rescale_intensity(sitk.GetArrayFromImage(fat_image),
                                   out_range=out_range)
+
+    debug_img = sitk.GetImageFromArray(fat_array.astype(float))
+    debug_img.CopyInformation(fat_image)
+    sitk.WriteImage(debug_img, 'debug_fat_image_scaled.nii.gz')
+    
     LOGGER.info('Done.')
 
     if labeldict is None:
