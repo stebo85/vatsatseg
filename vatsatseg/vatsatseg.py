@@ -108,23 +108,23 @@ def vatsatseg(water, fat, output, labeldict=None):
     out_range = (0, 100)
     water_array_unscaled = sitk.GetArrayFromImage(water_image)
 
-    debug_img = sitk.GetImageFromArray(water_array_unscaled.astype(float))
-    debug_img.CopyInformation(water_image)
-    sitk.WriteImage(debug_img, 'debug_water_image_unscaled.nii.gz')
+    # debug_img = sitk.GetImageFromArray(water_array_unscaled.astype(float))
+    # debug_img.CopyInformation(water_image)
+    # sitk.WriteImage(debug_img, 'debug_water_image_unscaled.nii.gz')
 
     water_array = rescale_intensity(water_array_unscaled, out_range=out_range)
 
-    debug_img = sitk.GetImageFromArray(water_array.astype(float))
-    debug_img.CopyInformation(water_image)
-    sitk.WriteImage(debug_img, 'debug_water_image_scaled.nii.gz')
+    # debug_img = sitk.GetImageFromArray(water_array.astype(float))
+    # debug_img.CopyInformation(water_image)
+    # sitk.WriteImage(debug_img, 'debug_water_image_scaled.nii.gz')
 
     fat_array = rescale_intensity(sitk.GetArrayFromImage(fat_image),
                                   out_range=out_range)
 
-    debug_img = sitk.GetImageFromArray(fat_array.astype(float))
-    debug_img.CopyInformation(fat_image)
-    sitk.WriteImage(debug_img, 'debug_fat_image_scaled.nii.gz')
-    
+    # debug_img = sitk.GetImageFromArray(fat_array.astype(float))
+    # debug_img.CopyInformation(fat_image)
+    # sitk.WriteImage(debug_img, 'debug_fat_image_scaled.nii.gz')
+
     LOGGER.info('Done.')
 
     if labeldict is None:
@@ -222,8 +222,25 @@ def get_labelmap_2d(water_array, fat_array, labeldict=None):
     # kmeans clustering
     b_mask, w_mask, f_mask = kmeans(water_array, fat_array)
 
+# SB debug
+    # import matplotlib.pyplot as plt
+    # imgplot = plt.imshow(water_array)
+    # plt.show()
+
+    # imgplot = plt.imshow(fat_array)
+    # plt.show()
+
+    # imgplot = plt.imshow(b_mask)
+    # plt.show()
+    # imgplot = plt.imshow(w_mask)
+    # plt.show()
+    # imgplot = plt.imshow(f_mask)
+    # plt.show()
+# SB debug
+
     # differentiation between vat and sat
     sat_label, sat_filled, sat_margin = get_intermediate_sat_labels(f_mask)
+    
 
     skintorso_mask, _, skin_filled = \
         get_intermediate_skintorso_labels(w_mask, sat_margin, sat_filled)
@@ -317,13 +334,27 @@ def get_intermediate_sat_labels(f_mask):
 
 def extract_largest_label(mask):
 
+    # SB debug
+    # import matplotlib.pyplot as plt
+    # imgplot = plt.imshow(mask)
+    # plt.show()
+    # SB debug
+
     labels = label(mask)
     regions = regionprops(labels)
 
+    # SB debug
+    # import matplotlib.pyplot as plt
+    # imgplot = plt.imshow(labels)
+    # plt.show()
+    # SB debug
+
     areas = np.array([(r.convex_area, r.label) for r in regions
                       if r.label != 0])
-    areas.view('i8,i8').sort(order=['f0'], axis=0) # sort by area
-    ind_largest_label = areas[-1, 1]
+    # areas.view('i8,i8').sort(order=['f0'], axis=0) # sort by area
+    areas_sorted = areas[areas[:,0].argsort()]  # sort by area
+
+    ind_largest_label = areas_sorted[-1, 1]
 
     return labels == ind_largest_label
 
